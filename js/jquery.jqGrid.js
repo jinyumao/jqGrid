@@ -1,6 +1,6 @@
 /**
 *
-* @license Guriddo jqGrid JS - v5.4.0 - 2020-06-05
+* @license Guriddo jqGrid JS - v5.4.0 - 2020-06-23
 * Copyright(c) 2008, Tony Tomov, tony@trirand.com
 * 
 * License: http://guriddo.net/?page_id=103334
@@ -6469,7 +6469,7 @@ $.jgrid.extend({
 					// find max height
 					var mh = [];
 					$("#"+$.jgrid.jqID($t.p.id) + " tr[role=row].jqgrow").each(function(){
-						mh.push( $(this).outerHeight() );
+						mh.push( $(this).height() );
 					});
 
 					var btbl = $("#"+$.jgrid.jqID($t.p.id)).clone(true);
@@ -6801,6 +6801,10 @@ $.jgrid.extend({
 							$($t).jqGrid("restoreCell",iRow,iCol);
 						}
 					} //ESC
+					if (e.keyCode === 13 && e.altKey && this.nodeName === "TEXTAREA") {
+						this.value = this.value + "\r";
+						return true;
+					}
 					if (e.keyCode === 13 && !e.shiftKey) {
 						$($t).jqGrid("saveCell",iRow,iCol);
 						// Prevent default action
@@ -11824,18 +11828,11 @@ $.jgrid.extend({
 			}
 			if ($("#"+alertIDs.themodal)[0] === undefined) {
 				if(!o.alerttop && !o.alertleft) {
-					if (window.innerWidth !== undefined) {
-						o.alertleft = window.innerWidth;
-						o.alerttop = window.innerHeight;
-					} else if (document.documentElement !== undefined && document.documentElement.clientWidth !== undefined && document.documentElement.clientWidth !== 0) {
-						o.alertleft = document.documentElement.clientWidth;
-						o.alerttop = document.documentElement.clientHeight;
-					} else {
-						o.alertleft=1024;
-						o.alerttop=768;
-					}
-					o.alertleft = o.alertleft/2 - parseInt(o.alertwidth,10)/2;
-					o.alerttop = o.alerttop/2-25;
+					var pos=$.jgrid.findPos(this);
+					pos[0]=Math.round(pos[0]);
+					pos[1]=Math.round(pos[1]);
+					o.alertleft = pos[0] + (this.p.width/2)-parseInt(o.alertwidth,10)/2;
+					o.alerttop = pos[1] + (this.p.height/2)-25;					
 				}
 				var fs =  $('.ui-jqgrid').css('font-size') || '11px';
 				$.jgrid.createModal(alertIDs,
@@ -19871,6 +19868,9 @@ $.jgrid.extend({
 
 			var focusRow=0, focusCol=0; // set the dafualt one
 			$($t).on('keydown', function(e) {
+				if($t.p.navigationDisabled && $t.p.navigationDisabled === true) {
+					return;
+				}
 				var key = e.which || e.keyCode, nextCell;
 				switch(key) {
 					case (38) :
